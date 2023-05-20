@@ -2,12 +2,14 @@
 A python implementation of the classic snake game running in your terminal.
 Made for the fun of it, as simple as it gets.
 
-It only depends on the *keyboard* lib.
-`pip3 install keyboard`
-
 To execute the game:
-`sudo python3 snake.py`
+`python3 snake.py`
 
 Use `W A S D` or `arrow keys` to control your snek 🐍
 
-I wish it could be run without **sudo**...
+Watchout for the ghost! 👻
+
+~~I wish it could be run without **sudo**...~~
+It no longer relies on the `keyboard` library.
+It's been since implemented using `ncurses` for input processing and UI.
+

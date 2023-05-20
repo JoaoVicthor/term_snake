@@ -1,8 +1,8 @@
-import keyboard, time, os, random
+import curses, time, random
 
 UP, RIGHT, DOWN, LEFT = range(4)
 FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
-AVAILABLE_FOOD = ("🍆","🍒","🍌","🍑")
+AVAILABLE_FOOD = ('\U0001F346','\U0001F352','\U0001F34C','\U0001F351') # ("🍆","🍒","🍌","🍑")
 FRAMETIME = 1000000000
 
 MAP_SIZE = 30 # Defines map area
@@ -89,23 +89,25 @@ class Map:
         
     def print_map(self):
         global current_food
-
-        print(f"\nscore={self.score}")
+        screen.move(screen.getyx()[0]+1, 0)
+        screen.addstr(f"score={self.score}")
         for y in self.map:
+            screen.move(screen.getyx()[0]+1, 0)
             for x in y:
                 if(x == WALL):
                     pass
                 elif(x == FOOD):
-                    print(current_food, end='')
+                    screen.addstr(current_food)
                 elif(x == SNAKE_DOT):
-                    print("⬜", end='')
+                    screen.addstr('\U00002B1C') # "⬜"
                 elif(x == FREE_SPACE):
-                    print("⬛", end='')
+                    screen.addstr('\U00002B1B') # "⬛"
                 elif(x == GHOST):
-                    print("👻", end='')
+                    screen.addstr('\U0001F47B') # "👻"
                 else:
-                    print(f"{x} ", end='')
-            print()
+                    screen.addstr(f"{x} ")
+        screen.move(0,0)
+        screen.refresh()
     
     def print_game_over(self):
         game_over_message = list([" you lost :( ", "snek dead :( ", "game over :( ", " you suck :P ", "rm -rf / ..."][random.randint(0,4)])
@@ -116,10 +118,10 @@ class Map:
             self.map[self.size//2][i] = game_over_message[msg_index]
             self.map[self.size//2+1][i] = " "
             msg_index+=1
-        os.system('clear')
+        screen.clear()
         self.print_map()
         time.sleep(3)
-        os.system('clear')
+        screen.clear()
 
     
     def update_dots(self):
@@ -153,34 +155,45 @@ def on_press():
     end_time = time.time_ns() + FRAMETIME/VELOCITY
 
     while(time.time_ns() < end_time):
-        if(keyboard.is_pressed('w') or keyboard.is_pressed('up')):
+        event = screen.getch()
+        if(event == ord('w') or event == curses.KEY_UP):
             change_direction(UP)
-        elif(keyboard.is_pressed('d') or keyboard.is_pressed('right')):
+        elif(event == ord('d') or event == curses.KEY_RIGHT):
             change_direction(RIGHT)
-        elif(keyboard.is_pressed('s') or keyboard.is_pressed('down')):
+        elif(event == ord('s') or event == curses.KEY_DOWN):
             change_direction(DOWN)
-        elif(keyboard.is_pressed('a') or keyboard.is_pressed('left')):
+        elif(event == ord('a') or event == curses.KEY_LEFT):
             change_direction(LEFT)
     direction_changed = False
 
 def countdown():
-    os.system('clear')
-    print("3...")
+    screen.clear()
+    screen.addstr("3...")
+    screen.refresh()
     time.sleep(1)
-    os.system('clear')
-    print("2..")
+    screen.clear()
+    screen.addstr("2..")
+    screen.refresh()
     time.sleep(1)
-    os.system('clear')
-    print("1.")
+    screen.clear()
+    screen.addstr("1.")
+    screen.refresh()
     time.sleep(1)
-    os.system('clear')
-    print("snek 🐍")
+    screen.clear()
+    screen.addstr("snek 🐍")
+    screen.refresh()
     time.sleep(1)
-    os.system('clear')
+    screen.clear()
 
 def get_random_fruit(): return AVAILABLE_FOOD[random.randint(0,len(AVAILABLE_FOOD)-1)]
 
 if __name__ == "__main__":
+    screen = curses.initscr()
+    curses.curs_set(0)
+    curses.noecho()
+    screen.keypad(1)
+    screen.nodelay(1)
+
     countdown()
 
     current_direction = RIGHT
@@ -195,8 +208,7 @@ if __name__ == "__main__":
         if(game_on):
             game_map.update_dots()
             game_map.set_ghost_location()
-            os.system('clear')
             game_map.print_map()
             on_press()
-
     game_map.print_game_over()
+    curses.endwin()
