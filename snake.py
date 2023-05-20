@@ -1,12 +1,14 @@
 import keyboard, time, os, random
 
 UP, RIGHT, DOWN, LEFT = range(4)
-FREE_SPACE, SNAKE_DOT, FOOD, WALL = range(4)
+FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
 AVAILABLE_FOOD = ("🍆","🍒","🍌","🍑")
 FRAMETIME = 1000000000
 
 MAP_SIZE = 30 # Defines map area
 VELOCITY = 12 # Set intended FPS here...
+
+TOTAL_GHOST_FRAMES = VELOCITY * 5
 
 class SnakeDot:
     def __init__(self, x, y, lifetime):
@@ -25,6 +27,8 @@ class Map:
         self.score = 0
         self.map = [[FREE_SPACE] * self.size for _ in range(self.size)]
         self.snake_dots = []
+        self.ghost_frames = 0
+        self.ghost_location = (0,0)
 
         for i in range(self.size):
             self.map[i][0] = WALL
@@ -34,17 +38,40 @@ class Map:
 
         self.set_food_location()
 
-    def set_food_location(self):
-        global current_food
-        food_set = False
-        current_food = get_random_fruit()
-        
-        while(not food_set):
+    def get_free_space(self, space_type):
+        condition = lambda x,y: self.map[y][x] == FREE_SPACE and \
+        (((x < x_cur-random.randint(0,2) or x > x_cur+random.randint(0,2)) and (y < y_cur-random.randint(0,2) or y > y_cur+random.randint(0,2))) or \
+        self.score > 100)
+
+        while(True):
             x = random.randint(1, self.size - 3)
             y = random.randint(1, self.size - 3)
-            if(self.map[y][x] == FREE_SPACE):
-                self.map[y][x] = FOOD
-                food_set = True
+            if(space_type == GHOST):
+                x = x-((x-x_cur)//2)
+                y = y-((y-y_cur)//2)
+            if(condition(x,y)):
+                return (x,y)
+            else:
+                continue
+
+    def set_food_location(self):
+        global current_food
+        current_food = get_random_fruit()
+        x,y = self.get_free_space(FOOD)
+        self.map[y][x] = FOOD
+
+    def set_ghost_location(self):
+        if(self.ghost_frames == TOTAL_GHOST_FRAMES):
+            if(self.ghost_location != (0,0)):
+                self.map[self.ghost_location[1]][self.ghost_location[0]] = FREE_SPACE
+                self.ghost_location = (0,0)
+            random_number = random.randint(0, int(MAP_SIZE**2*0.75))
+            if(random_number < self.score):
+                self.ghost_location = self.get_free_space(GHOST)
+                self.map[self.ghost_location[1]][self.ghost_location[0]] = GHOST
+            self.ghost_frames = 0
+        else:
+            self.ghost_frames+=1
 
     def set_snake_location(self, x, y):
         if(self.map[y][x] == FREE_SPACE):
@@ -57,7 +84,7 @@ class Map:
             self.set_food_location()
             self.snake_dots.append(SnakeDot(x,y,3+self.score))
             return True
-        elif(self.map[y][x] == SNAKE_DOT or self.map[y][x] == WALL):
+        elif(self.map[y][x] == SNAKE_DOT or self.map[y][x] == WALL or self.map[y][x] == GHOST):
             return False
         
     def print_map(self):
@@ -74,6 +101,8 @@ class Map:
                     print("⬜", end='')
                 elif(x == FREE_SPACE):
                     print("⬛", end='')
+                elif(x == GHOST):
+                    print("👻", end='')
                 else:
                     print(f"{x} ", end='')
             print()
@@ -153,19 +182,19 @@ def get_random_fruit(): return AVAILABLE_FOOD[random.randint(0,len(AVAILABLE_FOO
 
 if __name__ == "__main__":
     countdown()
-    
-    game_map = Map()
-    game_on = True
 
     current_direction = RIGHT
-    x_cur, y_cur = game_map.size//2-1, game_map.size//2
-    current_food = get_random_fruit()
+    x_cur, y_cur = MAP_SIZE//2-1, MAP_SIZE//2
+
+    game_map = Map()
+    game_on = True
 
     while (game_on):
         x_cur, y_cur = move_snake()
         game_on = game_map.set_snake_location(x=x_cur, y=y_cur)
         if(game_on):
             game_map.update_dots()
+            game_map.set_ghost_location()
             os.system('clear')
             game_map.print_map()
             on_press()
