@@ -2,6 +2,7 @@ import keyboard, time, os, random
 
 UP, RIGHT, DOWN, LEFT = range(4)
 FREE_SPACE, SNAKE_DOT, FOOD, WALL = range(4)
+AVAILABLE_FOOD = ("🍆","🍒","🍌","🍑")
 FRAMETIME = 1000000000
 
 MAP_SIZE = 30 # Defines map area
@@ -22,7 +23,7 @@ class Map:
     def __init__(self):
         self.size = MAP_SIZE
         self.score = 0
-        self.map = [[0] * self.size for _ in range(self.size)]
+        self.map = [[FREE_SPACE] * self.size for _ in range(self.size)]
         self.snake_dots = []
 
         for i in range(self.size):
@@ -34,7 +35,10 @@ class Map:
         self.set_food_location()
 
     def set_food_location(self):
+        global current_food
         food_set = False
+        current_food = get_random_fruit()
+        
         while(not food_set):
             x = random.randint(1, self.size - 3)
             y = random.randint(1, self.size - 3)
@@ -57,13 +61,15 @@ class Map:
             return False
         
     def print_map(self):
+        global current_food
+
         print(f"\nscore={self.score}")
         for y in self.map:
             for x in y:
                 if(x == WALL):
                     pass
                 elif(x == FOOD):
-                    print("🍆", end='')
+                    print(current_food, end='')
                 elif(x == SNAKE_DOT):
                     print("⬜", end='')
                 elif(x == FREE_SPACE):
@@ -75,27 +81,28 @@ class Map:
     def print_game_over(self):
         game_over_message = list([" you lost :( ", "snek dead :( ", "game over :( ", " you suck :P ", "rm -rf / ..."][random.randint(0,4)])
         msg_index = 0
+
         for i in range(self.size//2-6, self.size//2+6):
             self.map[self.size//2-1][i] = " "
             self.map[self.size//2][i] = game_over_message[msg_index]
             self.map[self.size//2+1][i] = " "
             msg_index+=1
-            print(str(msg_index))
         os.system('clear')
         self.print_map()
-        time.sleep(5)
+        time.sleep(3)
         os.system('clear')
 
     
     def update_dots(self):
         for dot in self.snake_dots:
             if(dot.decrease_lifetime()):
-                self.map[dot.y][dot.x] = 0
+                self.map[dot.y][dot.x] = FREE_SPACE
                 self.snake_dots.remove(dot)
 
 
 def change_direction(direction):
     global current_direction, direction_changed
+
     if (current_direction == RIGHT or current_direction == LEFT) and direction_changed == False:
         current_direction = direction if direction == UP or direction == DOWN else current_direction
     elif (current_direction == UP or current_direction == DOWN) and direction_changed == False:
@@ -115,23 +122,44 @@ def move_snake():
 def on_press():
     global direction_changed
     end_time = time.time_ns() + FRAMETIME/VELOCITY
+
     while(time.time_ns() < end_time):
-        if(keyboard.is_pressed('w')):
+        if(keyboard.is_pressed('w') or keyboard.is_pressed('up')):
             change_direction(UP)
-        elif(keyboard.is_pressed('d')):
+        elif(keyboard.is_pressed('d') or keyboard.is_pressed('right')):
             change_direction(RIGHT)
-        elif(keyboard.is_pressed('s')):
+        elif(keyboard.is_pressed('s') or keyboard.is_pressed('down')):
             change_direction(DOWN)
-        elif(keyboard.is_pressed('a')):
+        elif(keyboard.is_pressed('a') or keyboard.is_pressed('left')):
             change_direction(LEFT)
     direction_changed = False
 
+def countdown():
+    os.system('clear')
+    print("3...")
+    time.sleep(1)
+    os.system('clear')
+    print("2..")
+    time.sleep(1)
+    os.system('clear')
+    print("1.")
+    time.sleep(1)
+    os.system('clear')
+    print("snek 🐍")
+    time.sleep(1)
+    os.system('clear')
+
+def get_random_fruit(): return AVAILABLE_FOOD[random.randint(0,len(AVAILABLE_FOOD)-1)]
+
 if __name__ == "__main__":
+    countdown()
+    
     game_map = Map()
     game_on = True
 
     current_direction = RIGHT
     x_cur, y_cur = game_map.size//2-1, game_map.size//2
+    current_food = get_random_fruit()
 
     while (game_on):
         x_cur, y_cur = move_snake()
