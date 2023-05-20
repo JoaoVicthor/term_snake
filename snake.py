@@ -79,7 +79,6 @@ class Map:
             self.map[self.size//2-1][i] = " "
             self.map[self.size//2][i] = game_over_message[msg_index]
             self.map[self.size//2+1][i] = " "
-
             msg_index+=1
             print(str(msg_index))
         os.system('clear')
