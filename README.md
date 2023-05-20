@@ -8,6 +8,6 @@ It only depends on the *keyboard* lib.
 To execute the game:
 `sudo python3 snake.py`
 
-Use `W A S D` to control your snek 🐍
+Use `W A S D` or `arrow keys` to control your snek 🐍
 
 I wish it could be run without **sudo**...
