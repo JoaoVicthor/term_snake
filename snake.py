@@ -9,6 +9,7 @@ MAP_SIZE = 30 # Defines map area
 VELOCITY = 12 # Set intended FPS here...
 
 TOTAL_GHOST_FRAMES = VELOCITY * 5
+TOTAL_NEW_GHOST_FRAMES = VELOCITY * 18
 
 class SnakeDot:
     def __init__(self, x, y, lifetime):
@@ -19,6 +20,11 @@ class SnakeDot:
     def decrease_lifetime(self):
         self.lifetime -= 1
         return True if self.lifetime == 0 else False
+    
+class Ghost:
+    def __init__(self,location):
+        self.location = location
+        self.frames = 0
 
 
 class Map:
@@ -27,8 +33,8 @@ class Map:
         self.score = 0
         self.map = [[FREE_SPACE] * self.size for _ in range(self.size)]
         self.snake_dots = []
-        self.ghost_frames = 0
-        self.ghost_location = (0,0)
+        self.ghosts = []
+        self.new_ghost_frames = 0
 
         for i in range(self.size):
             self.map[i][0] = WALL
@@ -36,7 +42,15 @@ class Map:
             self.map[self.size-1][i] = WALL
             self.map[i][self.size-1] = WALL
 
+        self.ghosts.append(Ghost((0,0)))
         self.set_food_location()
+
+    def add_new_ghost(self):
+        if(self.new_ghost_frames == TOTAL_NEW_GHOST_FRAMES):
+            self.ghosts.append(Ghost((0,0)))
+            self.new_ghost_frames=0
+        else:
+            self.new_ghost_frames+=1
 
     def get_free_space(self, space_type):
         condition = lambda x,y: self.map[y][x] == FREE_SPACE and \
@@ -61,17 +75,18 @@ class Map:
         self.map[y][x] = FOOD
 
     def set_ghost_location(self):
-        if(self.ghost_frames == TOTAL_GHOST_FRAMES):
-            if(self.ghost_location != (0,0)):
-                self.map[self.ghost_location[1]][self.ghost_location[0]] = FREE_SPACE
-                self.ghost_location = (0,0)
-            random_number = random.randint(0, int(MAP_SIZE**2*0.75))
-            if(random_number < self.score):
-                self.ghost_location = self.get_free_space(GHOST)
-                self.map[self.ghost_location[1]][self.ghost_location[0]] = GHOST
-            self.ghost_frames = 0
-        else:
-            self.ghost_frames+=1
+        for ghost in self.ghosts:
+            if(ghost.frames - random.randint(0,5) >= TOTAL_GHOST_FRAMES):
+                if(ghost.location != (0,0)):
+                    self.map[ghost.location[1]][ghost.location[0]] = FREE_SPACE
+                    ghost.location = (0,0)
+                random_number = random.randint(0, int(self.size**random.randint(1,2)*0.75))
+                if(random_number < self.score):
+                    ghost.location = self.get_free_space(GHOST)
+                    self.map[ghost.location[1]][ghost.location[0]] = GHOST
+                ghost.frames = 0
+            else:
+                ghost.frames += 1
 
     def set_snake_location(self, x, y):
         if(self.map[y][x] == FREE_SPACE):
@@ -207,6 +222,7 @@ if __name__ == "__main__":
         game_on = game_map.set_snake_location(x=x_cur, y=y_cur)
         if(game_on):
             game_map.update_dots()
+            game_map.add_new_ghost()
             game_map.set_ghost_location()
             game_map.print_map()
             on_press()
