@@ -1,15 +1,17 @@
 import curses, time, random
+from sound import Sound
 
 UP, RIGHT, DOWN, LEFT = range(4)
 FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
 AVAILABLE_FOOD = ('\U0001F346','\U0001F352','\U0001F34C','\U0001F351') # ("🍆","🍒","🍌","🍑")
-FRAMETIME = 1000000000
 
 MAP_SIZE = 30 # Defines map area
-VELOCITY = 12 # Set intended FPS here...
+VELOCITY = 10 # Set intended FPS here...
 
 TOTAL_GHOST_FRAMES = VELOCITY * 5
 TOTAL_NEW_GHOST_FRAMES = VELOCITY * 18
+
+SOUNDS = (Sound.play_walking_sound, Sound.play_eating_sound, Sound.play_ghost_sound, Sound.play_death_sound)
 
 class SnakeDot:
     def __init__(self, x, y, lifetime):
@@ -83,6 +85,7 @@ class Map:
                 random_number = random.randint(0, int(self.size**random.randint(1,2)*0.75))
                 if(random_number < self.score):
                     ghost.location = self.get_free_space(GHOST)
+                    SOUNDS[2]()
                     self.map[ghost.location[1]][ghost.location[0]] = GHOST
                 ghost.frames = 0
             else:
@@ -92,14 +95,17 @@ class Map:
         if(self.map[y][x] == FREE_SPACE):
             self.map[y][x] = SNAKE_DOT
             self.snake_dots.append(SnakeDot(x,y,3+self.score))
+            SOUNDS[0]()
             return True
         elif(self.map[y][x] == FOOD):
             self.score+=1
             self.map[y][x] = SNAKE_DOT
             self.set_food_location()
             self.snake_dots.append(SnakeDot(x,y,3+self.score))
+            SOUNDS[1]()
             return True
         elif(self.map[y][x] == SNAKE_DOT or self.map[y][x] == WALL or self.map[y][x] == GHOST):
+            SOUNDS[3]()
             return False
         
     def print_map(self):
@@ -167,18 +173,21 @@ def move_snake():
 
 def on_press():
     global direction_changed
-    end_time = time.time_ns() + FRAMETIME/VELOCITY
-
-    while(time.time_ns() < end_time):
-        event = screen.getch()
-        if(event == ord('w') or event == curses.KEY_UP):
-            change_direction(UP)
-        elif(event == ord('d') or event == curses.KEY_RIGHT):
-            change_direction(RIGHT)
-        elif(event == ord('s') or event == curses.KEY_DOWN):
-            change_direction(DOWN)
-        elif(event == ord('a') or event == curses.KEY_LEFT):
-            change_direction(LEFT)
+    event = screen.getch()
+    if(event == ord('w') or event == curses.KEY_UP):
+        change_direction(UP)
+    elif(event == ord('d') or event == curses.KEY_RIGHT):
+        change_direction(RIGHT)
+    elif(event == ord('s') or event == curses.KEY_DOWN):
+        change_direction(DOWN)
+    elif(event == ord('a') or event == curses.KEY_LEFT):
+        change_direction(LEFT)
+    elif(event == ord('p')):
+        while(True):
+            event = screen.getch()
+            if(event == ord('p')):
+                break
+            time.sleep(0.5)
     direction_changed = False
 
 def countdown():
@@ -209,7 +218,7 @@ if __name__ == "__main__":
     screen.keypad(1)
     screen.nodelay(1)
 
-    countdown()
+    #countdown()
 
     current_direction = RIGHT
     x_cur, y_cur = MAP_SIZE//2-1, MAP_SIZE//2
@@ -225,6 +234,7 @@ if __name__ == "__main__":
             game_map.add_new_ghost()
             game_map.set_ghost_location()
             game_map.print_map()
+            time.sleep(1/VELOCITY)
             on_press()
     game_map.print_game_over()
     curses.endwin()
