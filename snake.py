@@ -1,3 +1,4 @@
+#!/bin/python3
 import curses, time, random
 
 UP, RIGHT, DOWN, LEFT = range(4)
