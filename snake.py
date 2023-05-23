@@ -1,17 +1,7 @@
+#!/usr/bin/python3
 import curses, time, random
+from constants import *
 from sound import Sound
-
-UP, RIGHT, DOWN, LEFT = range(4)
-FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
-AVAILABLE_FOOD = ('\U0001F346','\U0001F352','\U0001F34C','\U0001F351') # ("🍆","🍒","🍌","🍑")
-
-MAP_SIZE = 30 # Defines map area
-VELOCITY = 10 # Set intended FPS here...
-
-TOTAL_GHOST_FRAMES = VELOCITY * 5
-TOTAL_NEW_GHOST_FRAMES = VELOCITY * 18
-
-SOUNDS = (Sound.play_walking_sound, Sound.play_eating_sound, Sound.play_ghost_sound, Sound.play_death_sound)
 
 class SnakeDot:
     def __init__(self, x, y, lifetime):
@@ -85,7 +75,7 @@ class Map:
                 random_number = random.randint(0, int(self.size**random.randint(1,2)*0.75))
                 if(random_number < self.score):
                     ghost.location = self.get_free_space(GHOST)
-                    SOUNDS[2]()
+                    Sound.play_ghost_sound()
                     self.map[ghost.location[1]][ghost.location[0]] = GHOST
                 ghost.frames = 0
             else:
@@ -95,17 +85,17 @@ class Map:
         if(self.map[y][x] == FREE_SPACE):
             self.map[y][x] = SNAKE_DOT
             self.snake_dots.append(SnakeDot(x,y,3+self.score))
-            SOUNDS[0]()
+            Sound.play_walking_sound()
             return True
         elif(self.map[y][x] == FOOD):
             self.score+=1
             self.map[y][x] = SNAKE_DOT
             self.set_food_location()
             self.snake_dots.append(SnakeDot(x,y,3+self.score))
-            SOUNDS[1]()
+            Sound.play_eating_sound()
             return True
         elif(self.map[y][x] == SNAKE_DOT or self.map[y][x] == WALL or self.map[y][x] == GHOST):
-            SOUNDS[3]()
+            Sound.play_death_sound()
             return False
         
     def print_map(self):
@@ -183,9 +173,13 @@ def on_press():
     elif(event == ord('a') or event == curses.KEY_LEFT):
         change_direction(LEFT)
     elif(event == ord('p')):
+        Sound.stop_background_noise()
+        Sound.play_pause_sound()
         while(True):
             event = screen.getch()
             if(event == ord('p')):
+                Sound.play_pause_sound()
+                Sound.play_background_noise()
                 break
             time.sleep(0.5)
     direction_changed = False
@@ -193,18 +187,22 @@ def on_press():
 def countdown():
     screen.clear()
     screen.addstr("3...")
+    Sound.play_start_sound()
     screen.refresh()
     time.sleep(1)
     screen.clear()
     screen.addstr("2..")
+    Sound.play_start_sound()
     screen.refresh()
     time.sleep(1)
     screen.clear()
     screen.addstr("1.")
+    Sound.play_start_sound()
     screen.refresh()
     time.sleep(1)
     screen.clear()
     screen.addstr("snek 🐍")
+    Sound.play_start_sound()
     screen.refresh()
     time.sleep(1)
     screen.clear()
@@ -218,14 +216,14 @@ if __name__ == "__main__":
     screen.keypad(1)
     screen.nodelay(1)
 
-    #countdown()
+    countdown()
 
     current_direction = RIGHT
     x_cur, y_cur = MAP_SIZE//2-1, MAP_SIZE//2
 
     game_map = Map()
     game_on = True
-
+    Sound.play_background_noise()
     while (game_on):
         x_cur, y_cur = move_snake()
         game_on = game_map.set_snake_location(x=x_cur, y=y_cur)
@@ -238,3 +236,4 @@ if __name__ == "__main__":
             on_press()
     game_map.print_game_over()
     curses.endwin()
+    

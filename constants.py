@@ -1,0 +1,9 @@
+UP, RIGHT, DOWN, LEFT = range(4)
+FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
+AVAILABLE_FOOD = ('\U0001F346','\U0001F352','\U0001F34C','\U0001F351') # ("🍆","🍒","🍌","🍑")
+
+MAP_SIZE = 30 # Defines map area
+VELOCITY = 10 # Set intended FPS here...
+
+TOTAL_GHOST_FRAMES = VELOCITY * 5
+TOTAL_NEW_GHOST_FRAMES = VELOCITY * 18
