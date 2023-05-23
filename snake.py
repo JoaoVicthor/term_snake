@@ -3,10 +3,9 @@ import curses, time, random
 UP, RIGHT, DOWN, LEFT = range(4)
 FREE_SPACE, SNAKE_DOT, FOOD, WALL, GHOST = range(5)
 AVAILABLE_FOOD = ('\U0001F346','\U0001F352','\U0001F34C','\U0001F351') # ("🍆","🍒","🍌","🍑")
-FRAMETIME = 1000000000
 
 MAP_SIZE = 30 # Defines map area
-VELOCITY = 12 # Set intended FPS here...
+VELOCITY = 10 # Set intended FPS here...
 
 TOTAL_GHOST_FRAMES = VELOCITY * 5
 TOTAL_NEW_GHOST_FRAMES = VELOCITY * 18
@@ -167,18 +166,21 @@ def move_snake():
 
 def on_press():
     global direction_changed
-    end_time = time.time_ns() + FRAMETIME/VELOCITY
-
-    while(time.time_ns() < end_time):
-        event = screen.getch()
-        if(event == ord('w') or event == curses.KEY_UP):
-            change_direction(UP)
-        elif(event == ord('d') or event == curses.KEY_RIGHT):
-            change_direction(RIGHT)
-        elif(event == ord('s') or event == curses.KEY_DOWN):
-            change_direction(DOWN)
-        elif(event == ord('a') or event == curses.KEY_LEFT):
-            change_direction(LEFT)
+    event = screen.getch()
+    if(event == ord('w') or event == curses.KEY_UP):
+        change_direction(UP)
+    elif(event == ord('d') or event == curses.KEY_RIGHT):
+        change_direction(RIGHT)
+    elif(event == ord('s') or event == curses.KEY_DOWN):
+        change_direction(DOWN)
+    elif(event == ord('a') or event == curses.KEY_LEFT):
+        change_direction(LEFT)
+    elif(event == ord('p')):
+        while(True):
+            event = screen.getch()
+            if(event == ord('p')):
+                break
+            time.sleep(0.5)
     direction_changed = False
 
 def countdown():
@@ -225,6 +227,7 @@ if __name__ == "__main__":
             game_map.add_new_ghost()
             game_map.set_ghost_location()
             game_map.print_map()
+            time.sleep(1/VELOCITY)
             on_press()
     game_map.print_game_over()
     curses.endwin()
