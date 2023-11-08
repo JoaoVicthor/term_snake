@@ -4,6 +4,11 @@ Made for the fun of it, as simple as it gets.
 
 **This is the `silent version`. Please check the other branch if you're interested in playing with sound (Linux only)!**
 
+<img
+  src="https://raw.githubusercontent.com/JoaoVicthor/term_snake/main/preview/term_snake.gif"
+  alt="scared snek"
+  style="display: inline-block; margin: 0 auto; max-width: 550px">
+
 To execute the game:
 `python3 snake.py`
 
