@@ -101,13 +101,13 @@ class Map:
             return True
         elif(self.map[y][x] == SNAKE_DOT or self.map[y][x] == WALL or self.map[y][x] == GHOST):
             return False
-        
+
     def print_map(self):
         global current_food
-        screen.move(screen.getyx()[0]+1, 0)
+        screen.move(screen.getyx()[0]+1, 1)
         screen.addstr(f"score={self.score}")
         for y in self.map:
-            screen.move(screen.getyx()[0]+1, 0)
+            screen.move(screen.getyx()[0]+1, 1)
             for x in y:
                 if(x == WALL):
                     pass
@@ -121,9 +121,9 @@ class Map:
                     screen.addstr('\U0001F47B') # "👻"
                 else:
                     screen.addstr(f"{x} ")
-        screen.move(0,0)
+        screen.move(0,1)
         screen.refresh()
-    
+
     def print_game_over(self):
         game_over_message = list([" you lost :( ", "snek dead :( ", "game over :( ", " you suck :P ", "rm -rf / ..."][random.randint(0,4)])
         msg_index = 0
@@ -138,7 +138,6 @@ class Map:
         time.sleep(3)
         screen.clear()
 
-    
     def update_dots(self):
         for dot in self.snake_dots:
             if(dot.decrease_lifetime()):
@@ -158,28 +157,28 @@ def change_direction(direction):
 def move_snake():
     if current_direction == RIGHT:
         return (x_cur+1, y_cur)
-    elif current_direction == DOWN:
+    if current_direction == DOWN:
         return (x_cur, y_cur+1)
-    elif current_direction == LEFT:
+    if current_direction == LEFT:
         return (x_cur-1, y_cur)
-    elif current_direction == UP:
+    if current_direction == UP:
         return (x_cur, y_cur-1)
 
 def on_press():
     global direction_changed
     event = screen.getch()
-    if(event == ord('w') or event == curses.KEY_UP):
+    if event == ord('w') or event == curses.KEY_UP:
         change_direction(UP)
-    elif(event == ord('d') or event == curses.KEY_RIGHT):
+    elif event == ord('d') or event == curses.KEY_RIGHT:
         change_direction(RIGHT)
-    elif(event == ord('s') or event == curses.KEY_DOWN):
+    elif event == ord('s') or event == curses.KEY_DOWN:
         change_direction(DOWN)
-    elif(event == ord('a') or event == curses.KEY_LEFT):
+    elif event == ord('a') or event == curses.KEY_LEFT:
         change_direction(LEFT)
-    elif(event == ord('p')):
-        while(True):
+    elif event == ord('p') :
+        while True:
             event = screen.getch()
-            if(event == ord('p')):
+            if event == ord('p'):
                 break
             time.sleep(0.5)
     direction_changed = False
@@ -209,8 +208,8 @@ if __name__ == "__main__":
     screen = curses.initscr()
     curses.curs_set(0)
     curses.noecho()
-    screen.keypad(1)
-    screen.nodelay(1)
+    screen.keypad(True)
+    screen.nodelay(True)
 
     countdown()
 
@@ -223,7 +222,7 @@ if __name__ == "__main__":
     while (game_on):
         x_cur, y_cur = move_snake()
         game_on = game_map.set_snake_location(x=x_cur, y=y_cur)
-        if(game_on):
+        if game_on:
             game_map.update_dots()
             game_map.add_new_ghost()
             game_map.set_ghost_location()
